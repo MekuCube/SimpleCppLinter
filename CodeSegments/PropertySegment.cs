@@ -7,35 +7,39 @@ using System.Threading.Tasks;
 namespace SimpleCppLinter
 {
     [SegmentAttribute]
-    internal class PropertySegment : MacroSegment
+    internal class PropertySegment : SegmentBase
     {
         public string PropertyInner = null;
+        public MacroSegment MacroSegment = null;
 
-        public PropertySegment(MacroSegment InMacroSegment, int InEndIndex, string InPropertyInner) : base(InMacroSegment.StartIndex, InEndIndex, InMacroSegment.MacroName, InMacroSegment.MacroInner)
+        public PropertySegment(int InStartIndex, int InEndIndex, MacroSegment InMacroSegment, string InPropertyInner) : base(InStartIndex, InEndIndex)
         {
+            MacroSegment = InMacroSegment;
             PropertyInner = InPropertyInner;
             GitDiffState = InMacroSegment.GitDiffState;
         }
-        public PropertySegment(int InStartIndex, int InEndIndex, string InMacroName, string InMacroInner, string InPropertyInner) : base(InStartIndex, InEndIndex, InMacroName, InMacroInner)
+
+        public override int GetStartIndex()
         {
-            PropertyInner = InPropertyInner;
+            if (MacroSegment != null)
+                return MacroSegment.GetStartIndex();
+            return base.GetStartIndex();
         }
 
         public static PropertySegment Build(string InCode, int InStartIndex = 0)
         {
-            var MacroSegment = Build(InCode, InStartIndex, "UPROPERTY");
+            MacroSegment MacroSegment = MacroSegment.Build(InCode, InStartIndex, "UPROPERTY");
             if (MacroSegment == null)
                 return null;
 
             string PropertyEndString = ";";
-            int EndIndex = InCode.IndexOf(PropertyEndString, MacroSegment.EndIndex);
+            int EndIndex = InCode.IndexOf(PropertyEndString, MacroSegment.GetEndIndex());
             if (EndIndex == -1)
                 return null;
-            EndIndex += PropertyEndString.Length;
 
-            string PropertyInner = InCode.Substring(MacroSegment.EndIndex, EndIndex - MacroSegment.EndIndex).Trim();
+            string PropertyInner = InCode.Substring(MacroSegment.GetEndIndex(), EndIndex - MacroSegment.GetEndIndex()).Trim();
 
-            PropertySegment Segment = new PropertySegment(MacroSegment, EndIndex, PropertyInner);
+            PropertySegment Segment = new PropertySegment(MacroSegment.GetEndIndex(), EndIndex, MacroSegment, PropertyInner);
 
             if (PropertyInner.StartsWith("+"))
             {

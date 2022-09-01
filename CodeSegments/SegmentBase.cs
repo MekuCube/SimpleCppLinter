@@ -9,14 +9,23 @@ namespace SimpleCppLinter
     public abstract class SegmentBase
     {
         // Start index in CppText
-        public int StartIndex = -1;
+        protected int StartIndex = -1;
         // End index in CppText
-        public int EndIndex = -1;
+        protected int EndIndex = -1;
         // If set, will delete any segment its within that has lesser exclusivity
         public int Exclusive = 0;
 
         // If parsing Git diff text, indicate whether this segment was added, removed or neither
         public SegmentBuilder.EGitDiffState GitDiffState = SegmentBuilder.EGitDiffState.None;
+
+        virtual public int GetStartIndex()
+        {
+            return StartIndex;
+        }
+        virtual public int GetEndIndex()
+        {
+            return EndIndex;
+        }
 
         public int Length()
         {

@@ -7,34 +7,38 @@ using System.Threading.Tasks;
 namespace SimpleCppLinter
 {
     [SegmentAttribute]
-    internal class FunctionSegment : MacroSegment
+    internal class FunctionSegment : SegmentBase
     {
         public string FunctionInner = null;
+        public MacroSegment MacroSegment = null;
 
-        public FunctionSegment(MacroSegment InMacroSegment, int InEndIndex, string InFunctionInner) : base(InMacroSegment.StartIndex, InEndIndex, InMacroSegment.MacroName, InMacroSegment.MacroInner)
+        public FunctionSegment(MacroSegment InMacroSegment, int InStartIndex, int InEndIndex, string InFunctionInner) : base(InStartIndex, InEndIndex)
         {
+            MacroSegment = InMacroSegment;
             FunctionInner = InFunctionInner;
             GitDiffState = InMacroSegment.GitDiffState;
         }
-        public FunctionSegment(int InStartIndex, int InEndIndex, string InMacroName, string InMacroInner, string InFunctionInner) : base(InStartIndex, InEndIndex, InMacroName, InMacroInner)
+
+        public override int GetStartIndex()
         {
-            FunctionInner = InFunctionInner;
+            if (MacroSegment != null)
+                return MacroSegment.GetStartIndex();
+            return base.GetStartIndex();
         }
 
         public static FunctionSegment Build(string InCode, int InStartIndex = 0)
         {
-            var MacroSegment = Build(InCode, InStartIndex, "UFUNCTION");
+            MacroSegment MacroSegment = MacroSegment.Build(InCode, InStartIndex, "UFUNCTION");
             if (MacroSegment == null)
                 return null;
 
-            string PropertyEndString = ";";
-            int EndIndex = InCode.IndexOf(PropertyEndString, MacroSegment.EndIndex);
+            string[] FunctionEndStrings = { ";", "{" };
+            int EndIndex = InCode.IndexOfAny(FunctionEndStrings, MacroSegment.GetEndIndex());
             if (EndIndex == -1)
                 return null;
-            EndIndex += PropertyEndString.Length;
 
-            string FunctionInner = InCode.Substring(MacroSegment.EndIndex, EndIndex - MacroSegment.EndIndex).Trim();
-            FunctionSegment Segment = new FunctionSegment(MacroSegment, EndIndex, FunctionInner);
+            string FunctionInner = InCode.Substring(MacroSegment.GetEndIndex(), EndIndex - MacroSegment.GetEndIndex()).Trim();
+            FunctionSegment Segment = new FunctionSegment(MacroSegment, MacroSegment.GetEndIndex(), EndIndex, FunctionInner);
 
             if (FunctionInner.StartsWith("+"))
             {

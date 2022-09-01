@@ -33,15 +33,15 @@ namespace SimpleCppLinter
                     SegmentBase Segment = BuildMethod.Invoke(null, Parameters) as SegmentBase;
                     if (Segment == null)
                         break;
-                    if (Segment.EndIndex < 0)
+                    if (Segment.GetEndIndex() < 0)
                         throw new Exception("Invalid EndIndex");
                     AllSegments.Add(Segment);
-                    CurrentIndex = Segment.EndIndex;
+                    CurrentIndex = Segment.GetEndIndex();
                 }
             }
 
             // Sort by StartIndex
-            AllSegments = AllSegments.OrderBy(o => o.StartIndex).ToList();
+            AllSegments = AllSegments.OrderBy(o => o.GetStartIndex()).ToList();
 
             // Delete removed lines
             if (bIgnoreGitDiffRemoved)
@@ -78,9 +78,9 @@ namespace SimpleCppLinter
                 if (OtherSegment.Exclusive <= InSegment.Exclusive)
                     continue;
 
-                if (OtherSegment.StartIndex < InSegment.StartIndex)
+                if (OtherSegment.GetStartIndex() < InSegment.GetStartIndex())
                     continue;
-                if (OtherSegment.EndIndex > InSegment.EndIndex)
+                if (OtherSegment.GetEndIndex() > InSegment.GetEndIndex())
                     continue;
                 return true;
             }
