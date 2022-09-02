@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace SimpleCppLinter
 {
-    [SegmentAttribute]
+    [Segment]
+    [CommentObserver(true)]
     internal class PropertySegment : SegmentBase
     {
         public string PropertyInner = null;
@@ -41,38 +42,29 @@ namespace SimpleCppLinter
 
             PropertySegment Segment = new PropertySegment(MacroSegment.GetEndIndex(), EndIndex, MacroSegment, PropertyInner);
 
-            if (PropertyInner.StartsWith("+"))
+            // TODO: Generalize
+            if (MacroSegment.GitDiffState == SegmentBuilder.EGitDiffState.None)
             {
-                Segment.PropertyInner = Segment.PropertyInner.Substring(1).Trim();
-                Segment.GitDiffState = SegmentBuilder.EGitDiffState.Added;
-            }
-            else if (PropertyInner.StartsWith("-"))
-            {
-                Segment.PropertyInner = Segment.PropertyInner.Substring(1).Trim();
-                Segment.GitDiffState = SegmentBuilder.EGitDiffState.Removed;
+                if (PropertyInner.StartsWith("+"))
+                {
+                    Segment.PropertyInner = Segment.PropertyInner.Substring(1).Trim();
+                    Segment.GitDiffState = SegmentBuilder.EGitDiffState.Added;
+                }
+                else if (PropertyInner.StartsWith("-"))
+                {
+                    Segment.PropertyInner = Segment.PropertyInner.Substring(1).Trim();
+                    Segment.GitDiffState = SegmentBuilder.EGitDiffState.Removed;
+                }
             }
 
             return Segment;
         }
 
-        // Report any warnings or errors
-        public override bool OnValidate(SegmentBuilder SegmentBuilder, int MyIndex, List<string> Errors, List<string> Warnings)
-        {
-            CommentSegment MyComment = SegmentBuilder.GetRelativeSegment(MyIndex, -1, typeof(CommentSegment), typeof(PropertySegment), typeof(FunctionSegment), typeof(GitDiffSegment)) as CommentSegment;
-            // Missing comment
-            if (MyComment == null)
-            {
-                Errors.Add(String.Format("Missing comment for property '{0}'", PropertyInner));
-                return false;
-            }
-            return true;
-        }
-
         public override string ToString()
         {
-            if (PropertyInner == null)
+            if (PropertyInner == null || MacroSegment == null)
                 return base.ToString();
-            return String.Format("{0} [{1}]", PropertyInner, base.ToString());
+            return String.Format("{0} '{1}'", MacroSegment.MacroName, PropertyInner);
         }
     }
 }

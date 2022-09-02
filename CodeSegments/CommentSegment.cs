@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SimpleCppLinter
 {
-    [SegmentAttribute]
+    [Segment]
     internal class CommentSegment : SegmentBase
     {
         public string CommentInner = null;

@@ -28,7 +28,7 @@ namespace SimpleCppLinter
 
             MacroSegment Segment = new MacroSegment(StartIndex, EndIndex, InMacroName, MacroInner);
 
-            string FullLine = InCode.GetLineByIndex(StartIndex);
+            string FullLine = InCode.GetLineByIndex(StartIndex).Trim();
             if (FullLine.StartsWith("+"))
                 Segment.GitDiffState = SegmentBuilder.EGitDiffState.Added;
             else if (FullLine.StartsWith("-"))

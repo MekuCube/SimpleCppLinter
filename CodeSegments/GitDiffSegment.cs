@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace SimpleCppLinter
 {
-    [SegmentAttribute]
+    [Segment]
+    [CommentObserver]
     internal class GitDiffSegment : SegmentBase
     {
         public string DiffSegmentInner = null;

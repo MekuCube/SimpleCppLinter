@@ -43,7 +43,7 @@ namespace SimpleCppLinter
             var MySegmentBuilder = new SegmentBuilder(CppText);
             List<string> Errors = new List<string>();
             List<string> Warnings = new List<string>();
-            MySegmentBuilder.Validate(Errors, Warnings);
+            var SegmentsWithErrors = MySegmentBuilder.Validate(Errors, Warnings);
             int NumErrors = Errors.Count;
             int NumWarnings = Warnings.Count;
             if (NumErrors > 0)

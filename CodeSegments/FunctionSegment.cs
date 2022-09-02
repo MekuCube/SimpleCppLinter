@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace SimpleCppLinter
 {
-    [SegmentAttribute]
+    [Segment]
+    [CommentObserver(true)]
     internal class FunctionSegment : SegmentBase
     {
         public string FunctionInner = null;
@@ -40,38 +41,29 @@ namespace SimpleCppLinter
             string FunctionInner = InCode.Substring(MacroSegment.GetEndIndex(), EndIndex - MacroSegment.GetEndIndex()).Trim();
             FunctionSegment Segment = new FunctionSegment(MacroSegment, MacroSegment.GetEndIndex(), EndIndex, FunctionInner);
 
-            if (FunctionInner.StartsWith("+"))
+            // TODO: Generalize
+            if (MacroSegment.GitDiffState == SegmentBuilder.EGitDiffState.None)
             {
-                Segment.FunctionInner = Segment.FunctionInner.Substring(1).Trim();
-                Segment.GitDiffState = SegmentBuilder.EGitDiffState.Added;
-            }
-            else if (FunctionInner.StartsWith("-"))
-            {
-                Segment.FunctionInner = Segment.FunctionInner.Substring(1).Trim();
-                Segment.GitDiffState = SegmentBuilder.EGitDiffState.Removed;
+                if (FunctionInner.StartsWith("+"))
+                {
+                    Segment.FunctionInner = Segment.FunctionInner.Substring(1).Trim();
+                    Segment.GitDiffState = SegmentBuilder.EGitDiffState.Added;
+                }
+                else if (FunctionInner.StartsWith("-"))
+                {
+                    Segment.FunctionInner = Segment.FunctionInner.Substring(1).Trim();
+                    Segment.GitDiffState = SegmentBuilder.EGitDiffState.Removed;
+                }
             }
 
             return Segment;
         }
 
-        // Report any warnings or errors
-        public override bool OnValidate(SegmentBuilder SegmentBuilder, int MyIndex, List<string> Errors, List<string> Warnings)
-        {
-            CommentSegment MyComment = SegmentBuilder.GetRelativeSegment(MyIndex, -1, typeof(CommentSegment), typeof(PropertySegment), typeof(FunctionSegment), typeof(GitDiffSegment)) as CommentSegment;
-            // Missing comment
-            if (MyComment == null)
-            {
-                Errors.Add(String.Format("Missing comment for function '{0}'", FunctionInner));
-                return false;
-            }
-            return true;
-        }
-
         public override string ToString()
         {
-            if (FunctionInner == null)
+            if (FunctionInner == null || MacroSegment == null)
                 return base.ToString();
-            return String.Format("{0} [{1}]", FunctionInner, base.ToString());
+            return String.Format("{0} '{1}'", MacroSegment.MacroName, FunctionInner);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace SimpleCppLinter
 
         public SegmentBuilder(string CppText)
         {
-            List<Type> SegmentTypes = GetAllSegmentTypes();
+            List<Type> SegmentTypes = SegmentAttribute.GetAllTypes();
             foreach (Type TypeIt in SegmentTypes)
             {
                 int CurrentIndex = 0;
@@ -36,7 +36,7 @@ namespace SimpleCppLinter
                     if (Segment.GetEndIndex() < 0)
                         throw new Exception("Invalid EndIndex");
                     AllSegments.Add(Segment);
-                    CurrentIndex = Segment.GetEndIndex();
+                    CurrentIndex = Segment.GetStartIndex() + 1;
                 }
             }
 
@@ -85,25 +85,6 @@ namespace SimpleCppLinter
                 return true;
             }
             return false;
-        }
-
-        // Returns all SegmentBase types with SegmentAttribute
-        static protected List<Type> GetAllSegmentTypes()
-        {
-            var type = typeof(SegmentBase);
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(p => type.IsAssignableFrom(p));
-
-            List<Type> Result = new List<Type>();
-
-            foreach (var mytype in types)
-            {
-                if (mytype.IsAbstract) continue;
-                if (mytype.GetCustomAttribute<SegmentAttribute>(true) == null) continue;
-                Result.Add(mytype);
-            }
-            return Result;
         }
 
         internal SegmentBase GetRelativeSegment(int CurrentIndex, int LookOffset, params Type[] TypesToReturn)
