@@ -103,7 +103,7 @@ namespace SimpleCppLinter
             return null;
         }
 
-        public List<SegmentBase> Validate(List<string> Errors, List<string> Warnings, EGitDiffState OnlyDiffState = EGitDiffState.Added)
+        public List<SegmentBase> Validate(List<string> Errors, List<string> Warnings, EGitDiffState OnlyDiffState = EGitDiffState.None)
         {
             List<SegmentBase> SegmentsWithErrors = new List<SegmentBase>();
 

@@ -28,18 +28,24 @@ namespace System
         public static string GetNestedString(this string InCode, string OpenNest = "(", string CloseNest = ")", int StartIndex = 0)
         {
             int OutEndIndex = -1;
-            return GetNestedString(InCode, out OutEndIndex, OpenNest, CloseNest, StartIndex);
+            return InCode.GetNestedString(out OutEndIndex, OpenNest, CloseNest, StartIndex);
         }
 
         public static string GetNestedString(this string InCode, out int OutEndIndex, string OpenNest = "(", string CloseNest = ")", int StartIndex = 0)
         {
+            int OutStartIndex = -1;
+            return InCode.GetNestedString(out OutStartIndex, out OutEndIndex, OpenNest, CloseNest, StartIndex);
+        }
+
+        public static string GetNestedString(this string InCode, out int OutStartIndex, out int OutEndIndex, string OpenNest = "(", string CloseNest = ")", int StartIndex = 0)
+        {
             OutEndIndex = -1;
-            int OpenIndex = InCode.IndexOf(OpenNest, StartIndex);
-            if (OpenIndex == -1)
+            OutStartIndex = InCode.IndexOf(OpenNest, StartIndex);
+            if (OutStartIndex == -1)
                 return null;
 
             int NumOpen = 1;
-            int CurrentIndex = OpenIndex + OpenNest.Length;
+            int CurrentIndex = OutStartIndex + OpenNest.Length;
             int EndIndex = -1;
             while (true)
             {
@@ -70,7 +76,7 @@ namespace System
                 return null;
 
             OutEndIndex = EndIndex;
-            string InnerSegment = InCode.Substring(OpenIndex, EndIndex - OpenIndex);
+            string InnerSegment = InCode.Substring(OutStartIndex, EndIndex - OutStartIndex);
 
             return InnerSegment;
         }
