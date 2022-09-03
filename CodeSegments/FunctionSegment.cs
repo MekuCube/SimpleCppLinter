@@ -44,17 +44,23 @@ namespace SimpleCppLinter
             int CurrentIndex = 0;
 
             // Return type
-            FunctionReturnType = FunctionInner.Split(' ')[0];
-            CurrentIndex += FunctionReturnType.Length;
+            if (FunctionInner.Contains(' '))
+            {
+                FunctionReturnType = FunctionInner.Split(' ')[0];
+                CurrentIndex += FunctionReturnType.Length;
+            }
             
             // Parameters
             int StartIndex;
             int EndIndex;
             FunctionParameters = FunctionInner.GetNestedString(out StartIndex, out EndIndex, "(", ")", CurrentIndex);
-            
+
             // Function name
-            CurrentIndex = EndIndex;
-            FunctionName = FunctionInner.Substring(FunctionReturnType.Length, StartIndex - FunctionReturnType.Length).Trim();
+            if (FunctionReturnType != null)
+            {
+                CurrentIndex = EndIndex;
+                FunctionName = FunctionInner.Substring(FunctionReturnType.Length, StartIndex - FunctionReturnType.Length).Trim();
+            }
         }
 
         public override int GetStartIndex()

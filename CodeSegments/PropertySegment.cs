@@ -44,13 +44,13 @@ namespace SimpleCppLinter
             }
 
             // Parse PropertyInner
-            int CurrentIndex = 0;
+            string[] SplitPropertyInner = PropertyInner.Split(' ');
 
             // Variable type
-            PropertyType = PropertyInner.Split(' ')[0];
-            CurrentIndex += PropertyType.Length;
-
-            PropertyName = PropertyInner.Split(' ')[1];
+            if (SplitPropertyInner.Length > 0)
+                PropertyType = PropertyInner.Split(' ')[0];
+            if (SplitPropertyInner.Length > 1)
+                PropertyName = PropertyInner.Split(' ')[1];
         }
 
         public override int GetStartIndex()
@@ -66,12 +66,27 @@ namespace SimpleCppLinter
             if (MacroSegment == null)
                 return null;
 
-            string PropertyEndString = ";";
-            int EndIndex = InCode.IndexOf(PropertyEndString, MacroSegment.GetEndIndex());
-            if (EndIndex == -1)
-                return null;
+            int PropertyEndStartIndex = MacroSegment.GetEndIndex();
+            int EndIndex = 0;
+            string PropertyInner = null;
+            while (PropertyEndStartIndex < InCode.Length)
+            {
+                string PropertyEndString = ";";
+                EndIndex = InCode.IndexOf(PropertyEndString, PropertyEndStartIndex);
+                if (EndIndex == -1)
+                    return null;
 
-            string PropertyInner = InCode.Substring(MacroSegment.GetEndIndex(), EndIndex - MacroSegment.GetEndIndex()).Trim();
+                PropertyInner = InCode.Substring(PropertyEndStartIndex, EndIndex - PropertyEndStartIndex).Trim();
+                if (PropertyInner.Length <= 0)
+                {
+                    PropertyEndStartIndex++;
+                    PropertyInner = null;
+                    continue;
+                }
+                break;
+            }
+            if (PropertyInner == null)
+                return null;
             return new PropertySegment(MacroSegment.GetEndIndex(), EndIndex, MacroSegment, PropertyInner);
         }
 
