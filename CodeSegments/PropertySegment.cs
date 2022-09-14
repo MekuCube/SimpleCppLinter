@@ -20,6 +20,13 @@ namespace SimpleCppLinter
         private static Dictionary<string, string> TypeRequiresPrefix = new Dictionary<string, string>
         {
             { "bool", "b" }
+            , { "uint8", "b" }
+        };
+
+        // TODO: Expose as config
+        private static Dictionary<string, string> DeprecatedTypes = new Dictionary<string, string>
+        {
+            { "bool", "uint8" }
         };
 
         public PropertySegment(int InStartIndex, int InEndIndex, MacroSegment InMacroSegment, string InPropertyInner) : base(InStartIndex, InEndIndex)
@@ -103,6 +110,15 @@ namespace SimpleCppLinter
                     Errors.Add(String.Format("{0} of type '{1}' is required to start with '{2}' ({3})", ToString(), PropertyType, RequiredPrefix, RequiredPrefix + PropertyName));
                     bSuccess = false;
                 }
+            }
+            // Verify deprecated types aren't used
+            if (PropertyType != null && PropertyName != null && DeprecatedTypes.ContainsKey(PropertyType))
+            {
+                string RequiredType = DeprecatedTypes[PropertyType];
+
+                Errors.Add(String.Format("{0} is of type '{1}', please use type '{2}' instead ({2} {3})", ToString(), PropertyType, RequiredType, PropertyName));
+                bSuccess = false;
+
             }
             if (!base.OnValidate(SegmentBuilder, MyIndex, Errors, Warnings))
                 bSuccess = false;
