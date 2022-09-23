@@ -11,19 +11,38 @@ namespace SimpleCppLinter
     internal class GitDiffSegment : SegmentBase
     {
         public string DiffSegmentInner = null;
+        public int NewStartLine = 0;
+
+        private static readonly string StartString = "@@";
+        private static readonly string EndString = ":";
 
         public GitDiffSegment(int InStartIndex, int InEndIndex, string InDiffSegmentInner) : base(InStartIndex, InEndIndex)
         {
             Exclusive = 1;
             DiffSegmentInner = InDiffSegmentInner;
+
+            string LineCodes = DiffSegmentInner.GetNestedString(StartString, StartString);
+            if (LineCodes != null)
+            {
+                LineCodes = LineCodes.Trim('@').Trim();
+                string[] SplitLineCodes = LineCodes.Split(' ');
+                if (SplitLineCodes != null && SplitLineCodes.Length > 1)
+                {
+                    string PrevCode = SplitLineCodes[0];
+                    string NewCode = SplitLineCodes[1];
+
+                    string[] NewCodeSegments = NewCode.Split(',');
+                    // If NewStartLine is the line below, then our line has to be NewStartLine-1
+                    if (int.TryParse(NewCodeSegments[0], out NewStartLine))
+                        StartLine = NewStartLine - 1;
+                }
+            }
         }
 
         public static GitDiffSegment Build(string InCode, int InStartIndex = 0)
         {
             // @@ -132,7 +132,7 @@ public:
 
-            string StartString = "@@";
-            string EndString = ":";
             int StartIndex = -1;
             int EndIndex = -1;
             while (InStartIndex < InCode.Length)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SimpleCppLinter
@@ -18,13 +19,18 @@ namespace SimpleCppLinter
         }
         public static MacroSegment Build(string InCode, int InStartIndex = 0, string InMacroName = "UPROPERTY")
         {
-            string StartString = string.Format("{0}", InMacroName);
-            int StartIndex = InCode.IndexOf(StartString, InStartIndex);
+            string RegexPattern = @"("+InMacroName+@")\s*\(";
+
+            Match RegexMatch = new Regex(RegexPattern).Match(InCode, InStartIndex);
+            if (!RegexMatch.Success)
+                return null;
+
+            int StartIndex = RegexMatch.Index;
             if (StartIndex == -1)
                 return null;
 
             int EndIndex = -1;
-            string MacroInner = InCode.GetNestedString(out EndIndex, "(", ")", StartIndex);
+            string MacroInner = InCode.GetNestedString(out EndIndex, "(", ")", StartIndex + RegexMatch.Length-1);
 
             MacroSegment Segment = new MacroSegment(StartIndex, EndIndex, InMacroName, MacroInner);
 

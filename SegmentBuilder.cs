@@ -62,6 +62,38 @@ namespace SimpleCppLinter
 
                 AllSegments.RemoveAt(i);
             }
+
+            // Calculate start lines
+            int CurrentLine = -1;
+            int PreviousStartIndex = -1;
+            for (int i = 0; i < AllSegments.Count; i++)
+            {
+                SegmentBase Segment = AllSegments[i];
+                int SegmentStartLine = Segment.GetStartLine();
+                int SegmentStartIndex = Segment.GetStartIndexForLine();
+                if (SegmentStartLine >= 0)
+                {
+                    CurrentLine = SegmentStartLine;
+                    PreviousStartIndex = SegmentStartIndex;
+                    continue;
+                }
+                string TextBetweenPreviousAndCurrentSegment = null;
+                if (CurrentLine < 0)
+                {
+                    // First line is 1
+                    CurrentLine = 1;
+                    TextBetweenPreviousAndCurrentSegment = CppText.Substring(0, SegmentStartIndex);
+                }
+                else
+                {
+                    TextBetweenPreviousAndCurrentSegment = CppText.Substring(PreviousStartIndex, SegmentStartIndex - PreviousStartIndex);
+                }
+                SegmentStartLine = TextBetweenPreviousAndCurrentSegment.Count(Environment.NewLine);
+
+                CurrentLine += SegmentStartLine;
+                Segment.SetStartLine(CurrentLine);
+                PreviousStartIndex = SegmentStartIndex;
+            }
         }
 
         // Returns true if this segment has another segment within that is higher exclusivity

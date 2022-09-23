@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace SimpleCppLinter
 {
@@ -14,6 +13,8 @@ namespace SimpleCppLinter
         public string PropertyInner = null;
         public string PropertyType = null;
         public string PropertyName = null;
+        public string PropertyDefaultValue = null;
+        public int PropertySize = 0;
         public MacroSegment MacroSegment = null;
 
         // TODO: Expose as config
@@ -36,28 +37,67 @@ namespace SimpleCppLinter
             GitDiffState = InMacroSegment.GitDiffState;
 
             // TODO: Generalize
-            if (GitDiffState == SegmentBuilder.EGitDiffState.None)
+            if (PropertyInner.StartsWith("+"))
             {
-                if (PropertyInner.StartsWith("+"))
-                {
-                    PropertyInner = PropertyInner.Substring(1).Trim();
+                PropertyInner = PropertyInner.Substring(1).Trim();
+                if (GitDiffState == SegmentBuilder.EGitDiffState.None)
                     GitDiffState = SegmentBuilder.EGitDiffState.Added;
-                }
-                else if (PropertyInner.StartsWith("-"))
-                {
-                    PropertyInner = PropertyInner.Substring(1).Trim();
+            }
+            else if (PropertyInner.StartsWith("-"))
+            {
+                PropertyInner = PropertyInner.Substring(1).Trim();
+                if (GitDiffState == SegmentBuilder.EGitDiffState.None)
                     GitDiffState = SegmentBuilder.EGitDiffState.Removed;
+            }
+
+            string PropertyParseString = PropertyInner;
+
+            // Property default value
+            int PropertyDefaultValueSpecifierIndex = PropertyParseString.LastIndexOf('=');
+            if (PropertyDefaultValueSpecifierIndex >= 0)
+            {
+                PropertyDefaultValue = PropertyParseString.Substring(PropertyDefaultValueSpecifierIndex + 1).Trim();
+                if (PropertyDefaultValue != null && PropertyDefaultValue.Length > 0)
+                {
+                    PropertyParseString = PropertyParseString.Substring(0, PropertyDefaultValueSpecifierIndex);
+                }
+                else
+                {
+                    PropertyDefaultValue = null;
                 }
             }
 
-            // Parse PropertyInner
-            string[] SplitPropertyInner = PropertyInner.Split(' ');
+            // Property size
+            int PropertySizeSpecifierIndex = PropertyParseString.LastIndexOf(':');
+            if (PropertySizeSpecifierIndex >= 0)
+            {
+                string PropertySizeString = PropertyParseString.Substring(PropertySizeSpecifierIndex + 1).Trim();
+                if (int.TryParse(PropertySizeString, out PropertySize))
+                {
+                    PropertyParseString = PropertyParseString.Substring(0, PropertySizeSpecifierIndex);
+                }
+            }
+
+            // Parse PropertyInner by whitespaces
+            List<string> SplitPropertyInner = PropertyParseString.Split(' ').ToList();
 
             // Variable type
-            if (SplitPropertyInner.Length > 0)
-                PropertyType = PropertyInner.Split(' ')[0];
-            if (SplitPropertyInner.Length > 1)
-                PropertyName = PropertyInner.Split(' ')[1];
+            if (SplitPropertyInner.Count > 0)
+            {
+                PropertyType = SplitPropertyInner[0];
+                SplitPropertyInner.RemoveAt(0);
+
+                string[] ExplicitTypeSpecifiers = { "class", "struct" };
+                if (ExplicitTypeSpecifiers.Contains(PropertyType.ToLower()) && SplitPropertyInner.Count > 0)
+                {
+                    PropertyType += " " + SplitPropertyInner[0];
+                    SplitPropertyInner.RemoveAt(0);
+                }
+            }
+            if (SplitPropertyInner.Count > 0)
+            {
+                PropertyName = SplitPropertyInner[0];
+            }
         }
 
         public override int GetStartIndex()
@@ -83,7 +123,15 @@ namespace SimpleCppLinter
                 if (EndIndex == -1)
                     return null;
 
-                PropertyInner = InCode.Substring(PropertyEndStartIndex, EndIndex - PropertyEndStartIndex).Trim();
+                PropertyInner = InCode.Substring(PropertyEndStartIndex, EndIndex - PropertyEndStartIndex);
+
+                // Trim
+                int PrevLength = PropertyInner.Length;
+                PropertyInner = PropertyInner.TrimStart();
+                int AddedLength = -(PropertyInner.Length - PrevLength);
+                PropertyEndStartIndex += AddedLength;
+                PropertyInner.Trim();
+
                 if (PropertyInner.Length <= 0)
                 {
                     PropertyEndStartIndex++;
@@ -94,7 +142,7 @@ namespace SimpleCppLinter
             }
             if (PropertyInner == null)
                 return null;
-            return new PropertySegment(MacroSegment.GetEndIndex(), EndIndex, MacroSegment, PropertyInner);
+            return new PropertySegment(PropertyEndStartIndex, EndIndex, MacroSegment, PropertyInner);
         }
 
         // Report any warnings or errors
@@ -107,7 +155,7 @@ namespace SimpleCppLinter
                 string RequiredPrefix = TypeRequiresPrefix[PropertyType];
                 if (!PropertyName.StartsWith(RequiredPrefix))
                 {
-                    Errors.Add(String.Format("{0} of type '{1}' is required to start with '{2}' ({3})", ToString(), PropertyType, RequiredPrefix, RequiredPrefix + PropertyName));
+                    Errors.Add(String.Format("{0} of type '{1}' is required to start with '{2}' ({3}) [line {4}]", ToString(), PropertyType, RequiredPrefix, RequiredPrefix + PropertyName, GetStartLine()));
                     bSuccess = false;
                 }
             }
@@ -116,7 +164,7 @@ namespace SimpleCppLinter
             {
                 string RequiredType = DeprecatedTypes[PropertyType];
 
-                Errors.Add(String.Format("{0} is of type '{1}', please use type '{2}' instead ({2} {3})", ToString(), PropertyType, RequiredType, PropertyName));
+                Errors.Add(String.Format("{0} is of type '{1}', please use type '{2}' instead ({2} {3}) [line {4}]", ToString(), PropertyType, RequiredType, PropertyName, GetStartLine()));
                 bSuccess = false;
 
             }

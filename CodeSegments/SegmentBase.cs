@@ -15,6 +15,8 @@ namespace SimpleCppLinter
         protected int EndIndex = -1;
         // If set, will delete any segment its within that has lesser exclusivity
         public int Exclusive = 0;
+        // Start line in CppText
+        protected int StartLine = -1;
 
         // If parsing Git diff text, indicate whether this segment was added, removed or neither
         public SegmentBuilder.EGitDiffState GitDiffState = SegmentBuilder.EGitDiffState.None;
@@ -26,6 +28,18 @@ namespace SimpleCppLinter
         virtual public int GetEndIndex()
         {
             return EndIndex;
+        }
+        virtual public int GetStartIndexForLine()
+        {
+            return StartIndex;
+        }
+        virtual public int GetStartLine()
+        {
+            return StartLine;
+        }
+        public void SetStartLine(int NewStartLine)
+        {
+            StartLine = NewStartLine;
         }
 
         public int Length()
@@ -56,7 +70,7 @@ namespace SimpleCppLinter
                 // Missing comment
                 if (MyComment == null)
                 {
-                    Errors.Add(String.Format("Missing required comment for {0}", ToString()));
+                    Errors.Add(String.Format("Missing required comment for {0} [line {1}]", ToString(), GetStartLine()));
                     bSuccess = false;
                 }
             }

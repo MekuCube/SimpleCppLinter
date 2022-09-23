@@ -18,6 +18,21 @@ namespace SimpleCppLinter
             MacroSegment = InMacroSegment;
             StructInner = InStructInner;
             GitDiffState = InMacroSegment.GitDiffState;
+
+            // TODO: Generalize
+            if (StructInner.StartsWith("+"))
+            {
+                StructInner = StructInner.Substring(1).Trim();
+                if (GitDiffState == SegmentBuilder.EGitDiffState.None)
+                    GitDiffState = SegmentBuilder.EGitDiffState.Added;
+            }
+            else if (StructInner.StartsWith("-"))
+            {
+                StructInner = StructInner.Substring(1).Trim();
+                if (GitDiffState == SegmentBuilder.EGitDiffState.None)
+                    GitDiffState = SegmentBuilder.EGitDiffState.Removed;
+            }
+            StructInner = StructInner.TrimEnd('+').Trim();
         }
 
         public override int GetStartIndex()
@@ -41,21 +56,6 @@ namespace SimpleCppLinter
             string StructInner = InCode.Substring(MacroSegment.GetEndIndex(), EndIndex - MacroSegment.GetEndIndex()).Trim();
 
             StructSegment Segment = new StructSegment(MacroSegment.GetEndIndex(), EndIndex, MacroSegment, StructInner);
-
-            // TODO: Generalize
-            if (MacroSegment.GitDiffState == SegmentBuilder.EGitDiffState.None)
-            {
-                if (StructInner.StartsWith("+"))
-                {
-                    Segment.StructInner = Segment.StructInner.Substring(1).Trim();
-                    Segment.GitDiffState = SegmentBuilder.EGitDiffState.Added;
-                }
-                else if (StructInner.StartsWith("-"))
-                {
-                    Segment.StructInner = Segment.StructInner.Substring(1).Trim();
-                    Segment.GitDiffState = SegmentBuilder.EGitDiffState.Removed;
-                }
-            }
 
             return Segment;
         }

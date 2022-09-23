@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace System
@@ -53,17 +54,17 @@ namespace System
                 if (EndIndex == -1)
                     break;
 
-                if (InCode.Substring(EndIndex, OpenNest.Length) == OpenNest)
+                if (InCode.Substring(EndIndex, CloseNest.Length) == CloseNest)
                 {
-                    EndIndex++;
-                    NumOpen++;
-                }
-                else if (InCode.Substring(EndIndex, CloseNest.Length) == CloseNest)
-                {
-                    EndIndex++;
+                    EndIndex += CloseNest.Length;
                     NumOpen--;
                     if (NumOpen <= 0)
                         break;
+                }
+                else if (InCode.Substring(EndIndex, OpenNest.Length) == OpenNest)
+                {
+                    EndIndex += OpenNest.Length;
+                    NumOpen++;
                 }
                 else
                 {
@@ -101,6 +102,10 @@ namespace System
                     return Line;
             }
             throw new Exception("Failed to find index");
+        }
+        public static int Count(this string InString, string SubString)
+        {
+            return Regex.Matches(InString, SubString).Count;
         }
     }
 }
