@@ -66,9 +66,11 @@ namespace SimpleCppLinter
                 // Look for the code segment above us, and verify that it is a comment
                 List<Type> CommentObservingTypes = CommentObserverAttribute.GetAllTypes();
                 CommentObservingTypes.Add(typeof(CommentSegment));
-                CommentSegment MyComment = SegmentBuilder.GetRelativeSegment(MyIndex, -1, CommentObservingTypes.ToArray()) as CommentSegment;
-                // Missing comment
-                if (MyComment == null)
+                SegmentBase PreviousSegment = SegmentBuilder.GetRelativeSegment(MyIndex, -1, CommentObservingTypes.ToArray());
+                CommentSegment MyComment = PreviousSegment as CommentSegment;
+                GitDiffSegment PreviousGitDiff = PreviousSegment as GitDiffSegment;
+                // Missing comment (and not cut off by diff)
+                if (MyComment == null && PreviousGitDiff == null)
                 {
                     Errors.Add(String.Format("Missing required comment for {0} [line {1}]", ToString(), GetStartLine()));
                     bSuccess = false;
