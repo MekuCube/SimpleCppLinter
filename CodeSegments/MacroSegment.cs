@@ -11,11 +11,13 @@ namespace SimpleCppLinter
     {
         public string MacroName = null;
         public string MacroInner = null;
+        public string[] MacroParameters = null;
 
         public MacroSegment(int InStartIndex, int InEndIndex, string InMacroName, string InMacroInner) : base(InStartIndex, InEndIndex)
         {
             MacroName = InMacroName;
             MacroInner = InMacroInner;
+            MacroParameters = MacroInner.Split(',');
         }
         public static MacroSegment Build(string InCode, int InStartIndex = 0, string InMacroName = "UPROPERTY")
         {
