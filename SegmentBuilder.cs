@@ -84,6 +84,12 @@ namespace SimpleCppLinter
                     CurrentLine = 1;
                     TextBetweenPreviousAndCurrentSegment = CppText.Substring(0, SegmentStartIndex);
                 }
+
+                // If this segment is inside the previous segment, then there's no text in-between
+                if (SegmentStartIndex <= PreviousStartIndex)
+                {
+                    TextBetweenPreviousAndCurrentSegment = "";
+                }
                 else
                 {
                     TextBetweenPreviousAndCurrentSegment = CppText.Substring(PreviousStartIndex, SegmentStartIndex - PreviousStartIndex);
