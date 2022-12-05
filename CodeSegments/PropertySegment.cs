@@ -59,7 +59,7 @@ namespace SimpleCppLinter
                 PropertyDefaultValue = PropertyParseString.Substring(PropertyDefaultValueSpecifierIndex + 1).Trim();
                 if (PropertyDefaultValue != null && PropertyDefaultValue.Length > 0)
                 {
-                    PropertyParseString = PropertyParseString.Substring(0, PropertyDefaultValueSpecifierIndex);
+                    PropertyParseString = PropertyParseString.Substring(0, PropertyDefaultValueSpecifierIndex).Trim();
                 }
                 else
                 {
@@ -74,29 +74,25 @@ namespace SimpleCppLinter
                 string PropertySizeString = PropertyParseString.Substring(PropertySizeSpecifierIndex + 1).Trim();
                 if (int.TryParse(PropertySizeString, out PropertySize))
                 {
-                    PropertyParseString = PropertyParseString.Substring(0, PropertySizeSpecifierIndex);
+                    PropertyParseString = PropertyParseString.Substring(0, PropertySizeSpecifierIndex).Trim();
                 }
             }
 
             // Parse PropertyInner by whitespaces
             List<string> SplitPropertyInner = PropertyParseString.Split(' ').ToList();
 
+            // Variable name
+            if (SplitPropertyInner.Count > 0)
+            {
+                int Index = SplitPropertyInner.Count - 1;
+                PropertyName = SplitPropertyInner[Index];
+                SplitPropertyInner.RemoveAt(Index);
+            }
+
             // Variable type
             if (SplitPropertyInner.Count > 0)
             {
-                PropertyType = SplitPropertyInner[0];
-                SplitPropertyInner.RemoveAt(0);
-
-                string[] ExplicitTypeSpecifiers = { "class", "struct" };
-                if (ExplicitTypeSpecifiers.Contains(PropertyType.ToLower()) && SplitPropertyInner.Count > 0)
-                {
-                    PropertyType += " " + SplitPropertyInner[0];
-                    SplitPropertyInner.RemoveAt(0);
-                }
-            }
-            if (SplitPropertyInner.Count > 0)
-            {
-                PropertyName = SplitPropertyInner[0];
+                PropertyType = String.Join(" ", SplitPropertyInner);
             }
         }
 
