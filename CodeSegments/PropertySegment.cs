@@ -21,7 +21,7 @@ namespace SimpleCppLinter
         private static Dictionary<string, string> TypeRequiresPrefix = new Dictionary<string, string>
         {
             { "bool", "b" }
-            , { "uint8", "b" }
+            , { "uint8:1", "b" }
         };
 
         // TODO: Expose as config
@@ -146,14 +146,25 @@ namespace SimpleCppLinter
         {
             bool bSuccess = true;
             // Verify specific naming for properties
-            if (PropertyType != null && PropertyName != null && TypeRequiresPrefix.ContainsKey(PropertyType))
+            if (PropertyType != null && PropertyName != null)
             {
-                string RequiredPrefix = TypeRequiresPrefix[PropertyType];
-                if (!PropertyName.StartsWith(RequiredPrefix))
+                string Key = PropertyType;
+                if (PropertySize > 0)
                 {
-                    Errors.Add(String.Format("{0} of type '{1}' is required to start with '{2}' ({3}) [line {4}]", ToString(), PropertyType, RequiredPrefix, RequiredPrefix + PropertyName, GetStartLine()));
-                    bSuccess = false;
+                    string NewKey = Key + ":" + PropertySize.ToString();
+                    if (TypeRequiresPrefix.ContainsKey(NewKey))
+                        Key = NewKey;
                 }
+
+                if (TypeRequiresPrefix.ContainsKey(Key))
+                    {
+                        string RequiredPrefix = TypeRequiresPrefix[Key];
+                        if (!PropertyName.StartsWith(RequiredPrefix))
+                        {
+                            Errors.Add(String.Format("{0} of type '{1}' is required to start with '{2}' ({3}) [line {4}]", ToString(), Key, RequiredPrefix, RequiredPrefix + PropertyName, GetStartLine()));
+                            bSuccess = false;
+                        }
+                    }
             }
             // Verify deprecated types aren't used
             if (PropertyType != null && PropertyName != null && DeprecatedTypes.ContainsKey(PropertyType))
