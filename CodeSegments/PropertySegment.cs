@@ -157,14 +157,14 @@ namespace SimpleCppLinter
                 }
 
                 if (TypeRequiresPrefix.ContainsKey(Key))
+                {
+                    string RequiredPrefix = TypeRequiresPrefix[Key];
+                    if (!PropertyName.StartsWith(RequiredPrefix))
                     {
-                        string RequiredPrefix = TypeRequiresPrefix[Key];
-                        if (!PropertyName.StartsWith(RequiredPrefix))
-                        {
-                            Errors.Add(String.Format("{0} of type '{1}' is required to start with '{2}' ({3}) [line {4}]", ToString(), Key, RequiredPrefix, RequiredPrefix + PropertyName, GetStartLine()));
-                            bSuccess = false;
-                        }
+                        Errors.Add(String.Format("{0} of type '{1}'{5} is required to start with '{2}' ({3}) [line {4}]", ToString(), Key, RequiredPrefix, RequiredPrefix + PropertyName, GetStartLine(), PropertySize > 0 ? string.Format(" (size: {0})", PropertySize) : ""));
+                        bSuccess = false;
                     }
+                }
             }
             // Verify deprecated types aren't used
             if (PropertyType != null && PropertyName != null && DeprecatedTypes.ContainsKey(PropertyType))
