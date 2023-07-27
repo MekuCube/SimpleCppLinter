@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net461</TargetFramework>
-    <StartupObject></StartupObject>
+    <TargetFramework>net7.0</TargetFramework>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
-
 </Project>
